@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Archivo - variable font (width + weight) */
+@font-face {
+  font-family: 'Archivo';
+  src: url('./assets/fonts/other/Archivo-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Thunder - SemiBold */
+@font-face {
+  font-family: 'Thunder';
+  src: url('./assets/fonts/thunder/Thunder-SemiBoldLC.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Thunder - ExtraBold */
+@font-face {
+  font-family: 'Thunder';
+  src: url('./assets/fonts/thunder/Thunder-ExtraBoldLC.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --color-azul: #2A51F4;
+  --color-rojo: #E82D06;
+  --color-negro: #0F0F0F;
+  --color-crema: #F6EED5;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Archivo', sans-serif;
+  background-color: var(--color-negro);
+  color: white;
+  overflow-x: hidden;
+}
+
+.font-archivo {
+  font-family: 'Archivo', sans-serif;
+}
+
+.font-thunder {
+  font-family: 'Thunder', 'Arial Black', 'Impact', sans-serif;
+  font-weight: 800;
+  font-stretch: condensed;
+  letter-spacing: -0.02em;
+}
+
+/* Marquee Animation */
+.marquee-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.marquee-content {
+  display: flex;
+  animation: marqueeScroll 40s linear infinite;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0%, 100% {
+    opacity: 0.3;
+    filter: blur(100px);
+  }
+  50% {
+    opacity: 0.5;
+    filter: blur(120px);
+  }
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Carousel Fade */
+@keyframes fadeCarousel {
+  0%, 100% {
+    opacity: 0;
+  }
+  25%, 75% {
+    opacity: 1;
+  }
+}
+
+/* Utility Classes */
+.gradient-overlay {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.text-gradient-blue {
+  background: linear-gradient(135deg, var(--color-azul) 0%, #1a3bc4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shadow-glow-blue {
+  box-shadow: 0 0 15px rgba(42, 81, 244, 0.5);
+}
+
+.shadow-glow-red {
+  box-shadow: 0 0 15px rgba(232, 45, 6, 0.5);
+}
+
+/* Button Base Styles */
+.btn-pill {
+  @apply rounded-full border border-white uppercase font-archivo font-bold text-sm tracking-wider transition-all duration-300 flex items-center justify-center;
+}
+
+.btn-pill-red {
+  @apply btn-pill bg-[#E82D06] text-white hover:bg-[#c42505] shadow-glow-red hover:shadow-[0_0_25px_rgba(232,45,6,0.7)];
+}
+
+.btn-pill-blue {
+  @apply btn-pill bg-[#2A51F4] text-white hover:bg-[#1a3bc4] shadow-glow-blue hover:shadow-[0_0_25px_rgba(42,81,244,0.7)];
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-negro);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-azul);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1a3bc4;
+}
+
+/* Focus Visible */
+*:focus-visible {
+  outline: 2px solid var(--color-azul);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-azul);
+  color: white;
+}
+
+/* Smooth Transitions */
+a, button {
+  transition: all 0.3s ease;
+}
+
+/* Image Loading */
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
