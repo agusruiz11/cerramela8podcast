@@ -53,7 +53,7 @@ const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
         variant: 'destructive'
       });
     }
-  };
+  });
 
   return (
     <section id="newsletter" className="py-12 sm:py-16 md:py-24 px-3 sm:px-4 bg-[#0F0F0F]">
@@ -152,8 +152,6 @@ const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
       </div>
     </section>
   );
-};
-
 });
 
 NewsletterCTA1.displayName = 'NewsletterCTA1';
