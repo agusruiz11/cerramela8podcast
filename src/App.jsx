@@ -22,13 +22,16 @@ const LoadingFallback = () => (
 
 function App() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscribedEmail, setSubscribedEmail] = useState('');
 
-  const handleSubscribeSuccess = useCallback(() => {
+  const handleSubscribeSuccess = useCallback((email) => {
+    setSubscribedEmail(email || '');
     setShowSubscriptionModal(true);
   }, []);
 
   const handleCloseModal = useCallback(() => {
     setShowSubscriptionModal(false);
+    setSubscribedEmail('');
   }, []);
 
   return (
@@ -62,7 +65,7 @@ function App() {
             <Marquee />
           </Suspense>
           <Suspense fallback={<LoadingFallback />}>
-            <HablemosSection />
+            <HablemosSection onSubscribeSuccess={handleSubscribeSuccess} />
           </Suspense>
         </main>
         <Suspense fallback={null}>
@@ -72,6 +75,7 @@ function App() {
           <PostSubscriptionModal 
             isOpen={showSubscriptionModal}
             onClose={handleCloseModal}
+            subscribedEmail={subscribedEmail}
           />
         </Suspense>
         <Toaster />

@@ -1,11 +1,15 @@
 
-import React, { useState, useEffect, memo, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApi } from '@/hooks/useApi';
 import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { validateEmail } from '@/lib/validators';
+import { getRecaptchaToken } from '@/lib/recaptcha';
 import newsletterImage from '../assets/images/CL8_WEB2.jpg';
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
 const carouselImages = [
   newsletterImage,
@@ -15,7 +19,10 @@ const carouselImages = [
 
 const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
   const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot
+  const [errorMessage, setErrorMessage] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const emailInputRef = useRef(null);
   const { execute, loading } = useApi(api.subscribe);
   const { toast } = useToast();
 
@@ -28,32 +35,48 @@ const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-    
-    if (!email) {
+    setErrorMessage('');
+    const result = validateEmail(email);
+    if (!result.valid) {
+      setErrorMessage(result.error);
+      emailInputRef.current?.focus?.();
       toast({
-        title: 'Error',
-        description: 'Por favor ingresa tu email',
+        title: 'Revisá el email',
+        description: result.error,
         variant: 'destructive'
       });
       return;
     }
 
     try {
-      await execute(email);
+      const recaptchaToken = RECAPTCHA_SITE_KEY
+        ? await getRecaptchaToken(RECAPTCHA_SITE_KEY, 'newsletter')
+        : undefined;
+      await execute({
+        email: result.value,
+        source: 'cta',
+        website,
+        ...(recaptchaToken && { recaptchaToken })
+      });
       toast({
         title: '¡Éxito!',
         description: '¡Gracias por suscribirte a nuestro newsletter!'
       });
       setEmail('');
-      onSubscribeSuccess();
+      onSubscribeSuccess(result.value);
     } catch (error) {
+      const msg =
+        error.message ||
+        'No pudimos completar la suscripción. Probá de nuevo en un momento.';
+      setErrorMessage(msg);
+      emailInputRef.current?.focus?.();
       toast({
         title: 'Error',
-        description: error.message || 'Ocurrió un error al suscribirte',
+        description: msg,
         variant: 'destructive'
       });
     }
-  });
+  }, [email, website, execute, onSubscribeSuccess, toast]);
 
   return (
     <section id="newsletter" className="py-12 sm:py-16 md:py-24 px-3 sm:px-4 bg-[#0F0F0F]">
@@ -101,15 +124,28 @@ const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
             
             <form onSubmit={handleSubmit} className="w-full max-w-xl">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="TU EMAIL"
-                  disabled={loading}
-                  className="w-full flex-1 bg-[#050505] border border-white text-white placeholder:text-white/90 px-4 py-2.5 h-11 sm:h-10 rounded-[10px] focus:outline-none focus:border-[#2A51F4] transition-all font-archivo uppercase text-xs sm:text-sm tracking-widest min-w-0"
-                />
-                
+                <input type="text" name="website" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" className="absolute opacity-0 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true" />
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <input
+                    ref={emailInputRef}
+                    type="email"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setErrorMessage(''); }}
+                    placeholder="TU EMAIL"
+                    disabled={loading}
+                    autoComplete="email"
+                    aria-required="true"
+                    aria-invalid={!!errorMessage}
+                    aria-describedby={errorMessage ? 'newsletter-email-error' : undefined}
+                    className={`w-full flex-1 bg-[#050505] border text-white placeholder:text-white/90 px-4 py-2.5 h-11 sm:h-10 rounded-[10px] focus:outline-none transition-all font-archivo uppercase text-xs sm:text-sm tracking-widest min-w-0 ${errorMessage ? 'border-[#E82D06] focus:border-[#E82D06]' : 'border-white focus:border-[#2A51F4]'}`}
+                  />
+                  {errorMessage && (
+                    <p id="newsletter-email-error" className="text-[#F6EED5] bg-[#E82D06]/90 text-xs font-archivo font-medium px-2 py-1.5 rounded-md flex items-center gap-1.5" role="alert">
+                      <AlertCircle size={14} className="shrink-0" aria-hidden />
+                      {errorMessage}
+                    </p>
+                  )}
+                </div>
                 <button
                   type="submit"
                   disabled={loading}

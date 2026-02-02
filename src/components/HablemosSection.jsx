@@ -1,46 +1,67 @@
-import React, { useState, memo, useCallback } from 'react';
+import React, { useState, memo, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useApi } from '@/hooks/useApi';
 import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
-import PostSubscriptionModal from './PostSubscriptionModal';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { validateEmail } from '@/lib/validators';
+import { getRecaptchaToken } from '@/lib/recaptcha';
 import laptopImage from '../assets/images/laptop.png';
 
-const HablemosSection = memo(() => {
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+
+const HablemosSection = memo(({ onSubscribeSuccess }) => {
   const [email, setEmail] = useState('');
-  const [showModal, setShowModal] = useState(false);
+  const [website, setWebsite] = useState(''); // honeypot
+  const [errorMessage, setErrorMessage] = useState('');
+  const emailInputRef = useRef(null);
   const { execute, loading } = useApi(api.subscribe);
   const { toast } = useToast();
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-
-    if (!email) {
+    setErrorMessage('');
+    const result = validateEmail(email);
+    if (!result.valid) {
+      setErrorMessage(result.error);
+      emailInputRef.current?.focus?.();
       toast({
-        title: 'Error',
-        description: 'Por favor ingresa tu email',
+        title: 'Revisá el email',
+        description: result.error,
         variant: 'destructive'
       });
       return;
     }
 
     try {
-      await execute(email);
+      const recaptchaToken = RECAPTCHA_SITE_KEY
+        ? await getRecaptchaToken(RECAPTCHA_SITE_KEY, 'hablemos')
+        : undefined;
+      await execute({
+        email: result.value,
+        source: 'hablemos',
+        website,
+        ...(recaptchaToken && { recaptchaToken })
+      });
       toast({
         title: '¡Enviado!',
         description: 'Gracias por ponerte en contacto.'
       });
       setEmail('');
-      setShowModal(true);
+      onSubscribeSuccess(result.value);
     } catch (error) {
+      const msg =
+        error.message ||
+        'No pudimos completar el envío. Probá de nuevo en un momento.';
+      setErrorMessage(msg);
+      emailInputRef.current?.focus?.();
       toast({
         title: 'Error',
-        description: error.message || 'Ocurrió un error',
+        description: msg,
         variant: 'destructive'
       });
     }
-  }, [email, execute, toast]);
+  }, [email, website, execute, onSubscribeSuccess, toast]);
 
   return (
     <section id="contacto" className="py-12 sm:py-16 md:py-24 px-4 sm:px-5 md:px-6 bg-white relative overflow-x-hidden overflow-y-visible">
@@ -89,14 +110,28 @@ const HablemosSection = memo(() => {
               </div>
 
               <form onSubmit={handleSubmit} className="relative z-10 flex flex-col sm:flex-row gap-3 items-stretch w-full max-w-xl md:ml-auto shrink-0">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="TU EMAIL"
-                  disabled={loading}
-                  className="flex-1 min-w-0 bg-[#050505] border border-white text-white placeholder:text-white/90 px-3 sm:px-4 py-2.5 h-10 sm:h-10 rounded-[7px] focus:outline-none focus:border-white transition-all font-archivo uppercase text-xs sm:text-sm tracking-widest text-left"
-                />
+                <input type="text" name="website" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" className="absolute opacity-0 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true" />
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <input
+                    ref={emailInputRef}
+                    type="email"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setErrorMessage(''); }}
+                    placeholder="TU EMAIL"
+                    disabled={loading}
+                    autoComplete="email"
+                    aria-required="true"
+                    aria-invalid={!!errorMessage}
+                    aria-describedby={errorMessage ? 'hablemos-email-error' : undefined}
+                    className={`flex-1 min-w-0 bg-[#050505] border text-white placeholder:text-white/90 px-3 sm:px-4 py-2.5 h-10 sm:h-10 rounded-[7px] focus:outline-none transition-all font-archivo uppercase text-xs sm:text-sm tracking-widest text-left ${errorMessage ? 'border-[#E82D06] focus:border-[#E82D06]' : 'border-white focus:border-white'}`}
+                  />
+                  {errorMessage && (
+                    <p id="hablemos-email-error" className="text-white bg-[#E82D06]/95 text-xs font-archivo font-medium px-2 py-1.5 rounded-md flex items-center gap-1.5" role="alert">
+                      <AlertCircle size={14} className="shrink-0" aria-hidden />
+                      {errorMessage}
+                    </p>
+                  )}
+                </div>
                 <button
                   type="submit"
                   disabled={loading}
@@ -114,11 +149,6 @@ const HablemosSection = memo(() => {
 
         </div>
       </div>
-      
-      <PostSubscriptionModal 
-        isOpen={showModal} 
-        onClose={() => setShowModal(false)} 
-      />
     </section>
   );
 });

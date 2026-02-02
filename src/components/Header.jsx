@@ -61,7 +61,7 @@ const Header = () => {
             className="h-12 md:h-24 object-contain select-none"
             draggable={false}
             loading="eager"
-            fetchPriority="high"
+            fetchpriority="high"
           />
         </motion.div>
 

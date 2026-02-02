@@ -9,6 +9,7 @@ dist-ssr
 
 # Environment variables
 .env
+.env.example
 .env.local
 .env.production.local
 .env.development.local
@@ -32,3 +33,5 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+.vercel
+.env*.local
