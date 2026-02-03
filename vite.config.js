@@ -21,6 +21,11 @@ export default defineConfig({
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		allowedHosts: true,
+		// Opcional: si tenés deploy en Vercel, poné VITE_API_PROXY=https://tu-app.vercel.app
+		// para que npm run dev use esa API. Sino, usá vercel dev para tener API local.
+		proxy: process.env.VITE_API_PROXY
+			? { '/api': { target: process.env.VITE_API_PROXY, changeOrigin: true } }
+			: undefined,
 	},
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],

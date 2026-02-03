@@ -1,6 +1,5 @@
-
 const config = {
-  NEWSLETTER_PROVIDER: 'mock', // 'mailchimp' | 'brevo' | 'mock'
+  NEWSLETTER_PROVIDER: 'brevo', // 'brevo' activo | 'kit' comentado
   API_KEY: import.meta.env.VITE_API_KEY || '',
   LIST_ID: import.meta.env.VITE_LIST_ID || '',
   ENDPOINT_URL: import.meta.env.VITE_ENDPOINT_URL || '',

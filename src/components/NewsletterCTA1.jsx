@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, memo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApi } from '@/hooks/useApi';
@@ -6,10 +5,7 @@ import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { validateEmail } from '@/lib/validators';
-import { getRecaptchaToken } from '@/lib/recaptcha';
 import newsletterImage from '../assets/images/CL8_WEB2.jpg';
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
 const carouselImages = [
   newsletterImage,
@@ -49,21 +45,18 @@ const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
     }
 
     try {
-      const recaptchaToken = RECAPTCHA_SITE_KEY
-        ? await getRecaptchaToken(RECAPTCHA_SITE_KEY, 'newsletter')
-        : undefined;
-      await execute({
+      const res = await execute({
         email: result.value,
-        source: 'cta',
-        website,
-        ...(recaptchaToken && { recaptchaToken })
+        website
       });
       toast({
         title: '¡Éxito!',
-        description: '¡Gracias por suscribirte a nuestro newsletter!'
+        description: res?.alreadySubscribed
+          ? 'Ya estabas suscripto. ¡Gracias!'
+          : '¡Gracias por suscribirte a nuestro newsletter!'
       });
       setEmail('');
-      onSubscribeSuccess(result.value);
+      onSubscribeSuccess(result.value, res?.subscriberId ?? null);
     } catch (error) {
       const msg =
         error.message ||

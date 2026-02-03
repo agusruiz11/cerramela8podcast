@@ -5,10 +5,7 @@ import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { validateEmail } from '@/lib/validators';
-import { getRecaptchaToken } from '@/lib/recaptcha';
 import laptopImage from '../assets/images/laptop.png';
-
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
 const HablemosSection = memo(({ onSubscribeSuccess }) => {
   const [email, setEmail] = useState('');
@@ -34,21 +31,18 @@ const HablemosSection = memo(({ onSubscribeSuccess }) => {
     }
 
     try {
-      const recaptchaToken = RECAPTCHA_SITE_KEY
-        ? await getRecaptchaToken(RECAPTCHA_SITE_KEY, 'hablemos')
-        : undefined;
-      await execute({
+      const res = await execute({
         email: result.value,
-        source: 'hablemos',
-        website,
-        ...(recaptchaToken && { recaptchaToken })
+        website
       });
       toast({
         title: '¡Enviado!',
-        description: 'Gracias por ponerte en contacto.'
+        description: res?.alreadySubscribed
+          ? 'Ya estabas suscripto. ¡Gracias!'
+          : 'Gracias por ponerte en contacto.'
       });
       setEmail('');
-      onSubscribeSuccess(result.value);
+      onSubscribeSuccess(result.value, res?.subscriberId ?? null);
     } catch (error) {
       const msg =
         error.message ||

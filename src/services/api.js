@@ -1,7 +1,9 @@
 /**
- * API service: llama a Vercel Serverless /api (subscribe, profile).
- * En preview de Vercel las env BREVO_* activan Brevo; si faltan, backend responde ok (modo mock).
+ * API service: llama a Vercel Serverless /api/newsletter (subscribe, profile).
+ * Provider: Brevo activo; Kit comentado.
  */
+
+import config from '@/config/config';
 
 const API_BASE = '';
 
@@ -13,22 +15,21 @@ async function request(endpoint, options = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const msg = data.error || data.message || `Error ${res.status}`;
-    throw new Error(msg);
+    const msg = data.error || data.message || data.details || `Error ${res.status}`;
+    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
   }
   return data;
 }
 
 export const api = {
   /**
-   * Suscripción a newsletter.
-   * @param {{ email: string, source?: string, website?: string, recaptchaToken?: string }} payload
+   * Suscripción a newsletter (Kit/Brevo).
+   * @param {{ email: string, website?: string }} payload - website es honeypot (oculto)
+   * @returns {{ ok: boolean, subscriberId?: number, alreadySubscribed?: boolean }}
    */
   async subscribe(payload) {
     const email = typeof payload === 'string' ? payload : payload?.email;
-    const source = typeof payload === 'object' && payload ? payload.source : undefined;
     const website = typeof payload === 'object' && payload ? payload.website : undefined;
-    const recaptchaToken = typeof payload === 'object' && payload ? payload.recaptchaToken : undefined;
     const trimmed = email ? String(email).trim() : '';
     if (!trimmed) {
       throw new Error('El email es obligatorio.');
@@ -36,28 +37,44 @@ export const api = {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) || trimmed.length > 254) {
       throw new Error('Ingresá un email válido (ej: nombre@dominio.com).');
     }
-    const body = { email: trimmed, source, website };
-    if (recaptchaToken) body.recaptchaToken = recaptchaToken;
-    return request('/api/subscribe', {
+    return request('/api/newsletter/subscribe', {
       method: 'POST',
-      body: JSON.stringify(body)
+      body: JSON.stringify({ email: trimmed, website: website ?? '' })
     });
   },
 
   /**
-   * Actualizar perfil del contacto (ocupación, país).
-   * @param {{ email: string, ocupacion: string, pais: string }} data
+   * Actualizar perfil del suscriptor (job, country).
+   * Brevo usa email; Kit usa subscriberId (comentado).
+   * @param {{ subscriberId?: number, email?: string, job?: string, country?: string }} data
    */
   async submitProfile(data) {
-    if (!data?.email || !String(data.email).includes('@')) {
-      throw new Error('Email requerido');
+    const provider = config.NEWSLETTER_PROVIDER || 'brevo';
+    if (provider === 'brevo') {
+      const email = data?.email;
+      if (!email || String(email).trim() === '') {
+        throw new Error('email requerido para actualizar perfil');
+      }
+      return request('/api/newsletter/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          email: String(email).trim(),
+          job: data.job ?? '',
+          country: data.country ?? ''
+        })
+      });
     }
-    return request('/api/profile', {
-      method: 'POST',
+    // Kit (comentado)
+    const subscriberId = data?.subscriberId;
+    if (subscriberId == null || subscriberId === '') {
+      throw new Error('subscriberId requerido');
+    }
+    return request('/api/newsletter/profile', {
+      method: 'PUT',
       body: JSON.stringify({
-        email: String(data.email).trim(),
-        ocupacion: data.ocupacion ?? '',
-        pais: data.pais ?? ''
+        subscriberId: Number(subscriberId),
+        job: data.job ?? '',
+        country: data.country ?? ''
       })
     });
   },

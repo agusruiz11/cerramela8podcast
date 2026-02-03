@@ -6,31 +6,43 @@ import { api } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 import { PAISES } from '@/constants/countries';
 
-const OCUPACIONES = ['Empresario', 'Estudiante', 'Empleado', 'Otro'];
+const OCUPACIONES = [
+  { value: 'empresario', label: 'Empresario' },
+  { value: 'estudiante', label: 'Estudiante' },
+  { value: 'empleado', label: 'Empleado' },
+  { value: 'otro', label: 'Otro' }
+];
 
-const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail }) => {
+import config from '@/config/config';
+
+const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId }) => {
   const [formData, setFormData] = useState({
-    ocupacion: '',
-    ocupacionOtro: '',
-    pais: ''
+    job: '',
+    jobOtro: '',
+    country: ''
   });
-  const isOtro = formData.ocupacion === 'Otro';
+  const isOtro = formData.job === 'otro';
   const { execute, loading } = useApi(api.submitProfile);
   const { toast } = useToast();
+  // Brevo usa email; Kit usa subscriberId (comentado)
+  const isBrevo = (config.NEWSLETTER_PROVIDER || 'brevo') === 'brevo';
+  const canUpdateProfile = isBrevo
+    ? (subscribedEmail != null && subscribedEmail.trim() !== '')
+    : (subscriberId != null && subscriberId !== '');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!subscribedEmail) {
+    if (!canUpdateProfile) {
       onClose();
       return;
     }
-    const ocupacionParaEnviar = isOtro ? (formData.ocupacionOtro?.trim() || 'Otro') : formData.ocupacion;
+    const jobValue = isOtro ? (formData.jobOtro?.trim() || 'otro') : formData.job;
     try {
-      await execute({
-        email: subscribedEmail,
-        ocupacion: ocupacionParaEnviar,
-        pais: formData.pais
-      });
+      await execute(
+        isBrevo
+          ? { email: subscribedEmail, job: jobValue, country: formData.country }
+          : { subscriberId, job: jobValue, country: formData.country }
+      );
       toast({
         title: '¡Listo!',
         description: 'Revisá tu mail'
@@ -87,82 +99,97 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail }) => {
                 </h2>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block font-archivo font-semibold text-gray-700 mb-2">
-                    Sos:
-                  </label>
-                  <select
-                    value={formData.ocupacion}
-                    onChange={(e) => setFormData({ ...formData, ocupacion: e.target.value, ocupacionOtro: e.target.value === 'Otro' ? formData.ocupacionOtro : '' })}
-                    disabled={loading}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo focus:outline-none focus:border-[#2A51F4] transition-all"
-                  >
-                    <option value="">Selecciona una opción</option>
-                    {OCUPACIONES.map((op) => (
-                      <option key={op} value={op}>{op}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {isOtro && (
+              {canUpdateProfile ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block font-archivo font-semibold text-gray-700 mb-2">
-                      ¿Cuál?
+                      Sos:
                     </label>
-                    <input
-                      type="text"
-                      value={formData.ocupacionOtro}
-                      onChange={(e) => setFormData({ ...formData, ocupacionOtro: e.target.value })}
-                      placeholder="Escribí tu ocupación"
+                    <select
+                      value={formData.job}
+                      onChange={(e) => setFormData({ ...formData, job: e.target.value, jobOtro: e.target.value === 'otro' ? formData.jobOtro : '' })}
                       disabled={loading}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo placeholder:text-gray-400 focus:outline-none focus:border-[#2A51F4] transition-all"
-                    />
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo focus:outline-none focus:border-[#2A51F4] transition-all"
+                    >
+                      <option value="">Selecciona una opción</option>
+                      {OCUPACIONES.map((op) => (
+                        <option key={op.value} value={op.value}>{op.label}</option>
+                      ))}
+                    </select>
                   </div>
-                )}
 
-                <div>
-                  <label className="block font-archivo font-semibold text-gray-700 mb-2">
-                    País de donde nos escuchas:
-                  </label>
-                  <select
-                    value={formData.pais}
-                    onChange={(e) => setFormData({ ...formData, pais: e.target.value })}
-                    disabled={loading}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo focus:outline-none focus:border-[#2A51F4] transition-all"
-                  >
-                    <option value="">Selecciona un país</option>
-                    {PAISES.map((pais) => (
-                      <option key={pais} value={pais}>{pais}</option>
-                    ))}
-                  </select>
-                </div>
+                  {isOtro && (
+                    <div>
+                      <label className="block font-archivo font-semibold text-gray-700 mb-2">
+                        ¿Cuál?
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.jobOtro}
+                        onChange={(e) => setFormData({ ...formData, jobOtro: e.target.value })}
+                        placeholder="Escribí tu ocupación"
+                        disabled={loading}
+                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo placeholder:text-gray-400 focus:outline-none focus:border-[#2A51F4] transition-all"
+                      />
+                    </div>
+                  )}
 
-                <div className="flex gap-3 pt-4">
+                  <div>
+                    <label className="block font-archivo font-semibold text-gray-700 mb-2">
+                      País de donde nos escuchas:
+                    </label>
+                    <select
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      disabled={loading}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo focus:outline-none focus:border-[#2A51F4] transition-all"
+                    >
+                      <option value="">Selecciona un país</option>
+                      {PAISES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleSkip}
+                      disabled={loading}
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-archivo font-semibold py-3 px-6 rounded-xl transition-all duration-300 disabled:opacity-50"
+                    >
+                      Saltar / Ahora no
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 bg-[#2A51F4] hover:bg-[#1a3bc4] text-white font-archivo font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="animate-spin" size={18} />
+                          Enviando...
+                        </>
+                      ) : (
+                        'Enviar'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <p className="font-archivo text-gray-600">
+                    ¡Gracias por suscribirte! Revisá tu mail para confirmar.
+                  </p>
                   <button
                     type="button"
                     onClick={handleSkip}
-                    disabled={loading}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-archivo font-semibold py-3 px-6 rounded-xl transition-all duration-300 disabled:opacity-50"
+                    className="w-full bg-[#2A51F4] hover:bg-[#1a3bc4] text-white font-archivo font-bold py-3 px-6 rounded-xl transition-all duration-300"
                   >
-                    Saltar / Ahora no
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-[#2A51F4] hover:bg-[#1a3bc4] text-white font-archivo font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="animate-spin" size={18} />
-                        Enviando...
-                      </>
-                    ) : (
-                      'Enviar'
-                    )}
+                    Cerrar
                   </button>
                 </div>
-              </form>
+              )}
             </div>
           </motion.div>
         </>

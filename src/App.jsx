@@ -23,15 +23,18 @@ const LoadingFallback = () => (
 function App() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [subscribedEmail, setSubscribedEmail] = useState('');
+  const [subscriberId, setSubscriberId] = useState(null);
 
-  const handleSubscribeSuccess = useCallback((email) => {
+  const handleSubscribeSuccess = useCallback((email, id) => {
     setSubscribedEmail(email || '');
+    setSubscriberId(id ?? null);
     setShowSubscriptionModal(true);
   }, []);
 
   const handleCloseModal = useCallback(() => {
     setShowSubscriptionModal(false);
     setSubscribedEmail('');
+    setSubscriberId(null);
   }, []);
 
   return (
@@ -76,6 +79,7 @@ function App() {
             isOpen={showSubscriptionModal}
             onClose={handleCloseModal}
             subscribedEmail={subscribedEmail}
+            subscriberId={subscriberId}
           />
         </Suspense>
         <Toaster />

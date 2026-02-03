@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite --host :: --port 3000",
+    "dev:api": "vercel dev",
     "build": "node tools/generate-llms.js && vite build",
     "preview": "vite preview --host :: --port 3000",
     "lint": "eslint . --quiet",
