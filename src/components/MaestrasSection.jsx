@@ -11,7 +11,7 @@ const MaestrasSection = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.7 }}
-        className="relative w-full max-w-[1200px] rounded-xl sm:rounded-2xl md:rounded-[2.5rem] shadow-2xl min-h-[280px] md:min-h-[408px] pt-5 pb-5 md:pt-10 md:pb-10"
+        className="relative w-full max-w-[1200px] rounded-xl sm:rounded-2xl md:rounded-[2.5rem] shadow-2xl min-h-[200px] sm:min-h-[420px] md:min-h-[408px] pt-5 md:pt-10 md:pb-10"
         style={{
           background: 'linear-gradient(70deg, #000000 0%, #1a3bc4 50%, #000000 100%)',
           overflow: 'visible',
@@ -29,7 +29,7 @@ const MaestrasSection = () => {
 
           {/* Image - Centered, protruding from top */}
           <div 
-            className="absolute left-1/2 z-10 -top-[60px] md:-top-[120px]"
+            className="absolute left-1/2 z-10 -top-[60px] md:-top-[120px] w-[min(320px,100%)] sm:w-[min(400px,100%)] md:w-auto"
             style={{ 
               transform: 'translateX(-50%)',
               bottom: '0',
@@ -38,7 +38,7 @@ const MaestrasSection = () => {
             <img 
               src={personasImg}
               alt="Martín Blanco y Sebastián Ríos Fernández"
-              className="w-full max-w-[280px] sm:max-w-[400px] md:max-w-[750px] lg:max-w-[850px] h-full lg:h-auto object-contain"
+              className="w-full max-w-[320px] sm:max-w-[400px] md:max-w-[750px] lg:max-w-[850px] h-full lg:h-auto object-contain md:object-center object-bottom"
               loading="lazy"
               decoding="async"
               style={{ 
