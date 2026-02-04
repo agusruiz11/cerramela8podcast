@@ -58,7 +58,7 @@ const Header = () => {
           <img
             src={logoWhite}
             alt="Cerrame la 8 Podcast"
-            className="h-12 md:h-24 object-contain select-none"
+            className="h-6 md:h-12 object-contain select-none"
             draggable={false}
             loading="eager"
             fetchpriority="high"

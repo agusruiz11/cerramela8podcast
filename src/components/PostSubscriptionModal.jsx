@@ -179,7 +179,7 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
               ) : (
                 <div className="space-y-4">
                   <p className="font-archivo text-gray-600">
-                    ¡Gracias por suscribirte! Revisá tu mail para confirmar.
+                    ¡Gracias por suscribirte!
                   </p>
                   <button
                     type="button"
