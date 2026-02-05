@@ -1,9 +1,8 @@
 
-import React, { useEffect, useState, memo, useCallback } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import { youtubeService } from '@/services/youtube';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
 
 // Fallback data ensures the UI looks premium even if the API quota is hit or fails
 const FALLBACK_VIDEOS = [
@@ -30,7 +29,6 @@ const FALLBACK_VIDEOS = [
 const LatestEpisodes = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -51,7 +49,7 @@ const LatestEpisodes = () => {
     };
 
     fetchVideos();
-  }, [toast]);
+  }, []);
 
   return (
     <section id="escuchanos" className="py-16 px-4 bg-[#0F0F0F]">

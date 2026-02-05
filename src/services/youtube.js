@@ -69,26 +69,66 @@ class YouTubeService {
     }
 
     try {
-      // Placeholder for actual YouTube API call
-      // When implemented, this will fetch real videos from YouTube
-      const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?key=${config.YOUTUBE_API_KEY}&channelId=${config.YOUTUBE_CHANNEL_ID}&part=snippet,id&order=date&maxResults=3`
-      );
+      // Excluir Shorts: videoDuration "short" = <4 min. Usamos medium (4-20 min) y long (>20 min)
+      const baseParams = {
+        key: config.YOUTUBE_API_KEY,
+        channelId: config.YOUTUBE_CHANNEL_ID,
+        part: 'snippet,id',
+        order: 'date',
+        type: 'video',
+        maxResults: '5'
+      };
 
-      if (!response.ok) {
-        throw new Error('YouTube API request failed');
+      const [resMedium, resLong] = await Promise.all([
+        fetch(`https://www.googleapis.com/youtube/v3/search?${new URLSearchParams({ ...baseParams, videoDuration: 'medium' }).toString()}`),
+        fetch(`https://www.googleapis.com/youtube/v3/search?${new URLSearchParams({ ...baseParams, videoDuration: 'long' }).toString()}`)
+      ]);
+
+      const [dataMedium, dataLong] = await Promise.all([
+        resMedium.json().catch(() => ({})),
+        resLong.json().catch(() => ({}))
+      ]);
+
+      if (!resMedium.ok) {
+        const msg = dataMedium?.error?.message || 'YouTube API request failed';
+        throw new Error(msg);
       }
 
-      const data = await response.json();
-      const videos = data.items.map(item => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        thumbnail: item.snippet.thumbnails.high.url,
-        url: `https://www.youtube.com/watch?v=${item.id.videoId}`
-      }));
+      const toVideo = (item) => {
+        const thumbnails = item.snippet?.thumbnails || {};
+        const thumbnail = thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || '';
+        return {
+          id: item.id.videoId,
+          title: item.snippet?.title || 'Video',
+          thumbnail,
+          publishedAt: item.snippet?.publishedAt || '',
+          url: `https://www.youtube.com/watch?v=${item.id.videoId}`
+        };
+      };
 
-      this.setCache(videos);
-      return videos;
+      const allItems = [
+        ...(dataMedium.items || []).filter(i => i.id?.videoId),
+        ...(dataLong.items || []).filter(i => i.id?.videoId)
+      ];
+
+      const seen = new Set();
+      const videos = allItems
+        .filter(item => {
+          if (seen.has(item.id.videoId)) return false;
+          seen.add(item.id.videoId);
+          return true;
+        })
+        .map(toVideo)
+        .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
+        .slice(0, 3)
+        .map(({ publishedAt, ...v }) => v);
+
+      if (videos.length > 0) {
+        this.setCache(videos);
+        return videos;
+      }
+
+      return FALLBACK_VIDEOS;
     } catch (error) {
       console.error('YouTube API error:', error);
       return FALLBACK_VIDEOS;
