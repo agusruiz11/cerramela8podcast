@@ -5,7 +5,7 @@
 const ALLOWED_ORIGINS = [
   'https://www.cerramelaocho.com',
   'https://cerramelaocho.com',
-  'https://cerramela8podcast-ten.vercel.app',
+  'https://cerramela8podcast.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',
   ...(process.env.CORS_ALLOWED_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean) || [])

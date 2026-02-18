@@ -12,7 +12,7 @@ logger.error = (msg, options) => {
 	loggerError(msg, options);
 };
 
-const HOSTINGER_API_BASE = 'https://cerramela8podcast-ten.vercel.app';
+const HOSTINGER_API_BASE = 'https://cerramela8podcast.vercel.app';
 
 export default defineConfig(({ mode }) => ({
 	customLogger: logger,
