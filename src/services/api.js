@@ -5,7 +5,7 @@
 
 import config from '@/config/config';
 
-const API_BASE = '';
+const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

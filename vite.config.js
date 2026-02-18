@@ -12,9 +12,14 @@ logger.error = (msg, options) => {
 	loggerError(msg, options);
 };
 
-export default defineConfig({
+const HOSTINGER_API_BASE = 'https://cerramela8podcast-ten.vercel.app';
+
+export default defineConfig(({ mode }) => ({
 	customLogger: logger,
 	plugins: [react()],
+	define: mode === 'hostinger'
+		? { 'import.meta.env.VITE_API_BASE': JSON.stringify(HOSTINGER_API_BASE) }
+		: {},
 	server: {
 		cors: true,
 		headers: {
@@ -63,4 +68,4 @@ export default defineConfig({
 		},
 		chunkSizeWarningLimit: 1000,
 	},
-});
+}));

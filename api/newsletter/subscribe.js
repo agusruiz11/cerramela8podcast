@@ -2,10 +2,12 @@
  * Vercel Serverless: POST /api/newsletter/subscribe
  * Suscripción a newsletter vía Brevo (Kit comentado).
  * Anti-spam: honeypot + rate-limit.
+ * CORS: permite peticiones desde www.cerramelaocho.com (Hostinger).
  */
 
 // import * as kitProvider from '../providers/kitProvider.js'; // Comentado: usar Brevo
 import * as brevoProvider from '../providers/brevoProvider.js';
+import { handleCorsPreflight, setCorsHeaders } from '../lib/cors.js';
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX = 3;
@@ -40,8 +42,10 @@ function isValidEmail(email) {
 }
 
 export default async function handler(req, res) {
+  setCorsHeaders(req, res);
   res.setHeader('Content-Type', 'application/json');
 
+  if (handleCorsPreflight(req, res)) return;
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, error: 'Método no permitido' });
     return;
