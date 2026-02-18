@@ -110,6 +110,7 @@ const NewsletterCTA1 = memo(({ onSubscribeSuccess }) => {
               <h2 className="font-thunder text-[2.1rem] sm:text-4xl md:text-5xl lg:text-[4rem] leading-[0.88] uppercase text-[#FAEED1]" style={{ letterSpacing: '0.01em' }}>
                 <span className="font-semibold block">SUSCRIBITE AL</span>
                 <span className="font-semibold block">RESUMEN EJECUTIVO</span>
+                <span className="font-semibold block">DEL PODCAST</span>
                 <span className="font-extrabold block text-[#F6EED5]/95 text-[0.9em] sm:text-[1em]">#1 DE GASTRONOMÍA</span>
                 <span className="font-extrabold block text-[#F6EED5]/95 text-[0.9em] sm:text-[1em]">Y COMPETITIVIDAD</span>
               </h2>
