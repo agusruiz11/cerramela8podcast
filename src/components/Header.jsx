@@ -39,7 +39,7 @@ const Header = () => {
   }, []);
 
   const navItems = useMemo(() => [
-    { label: 'NEWSLETTER', id: 'newsletter', highlight: false },
+    { label: 'RESUMEN EJECUTIVO', id: 'newsletter', highlight: false },
     { label: 'CONTACTO', id: 'contacto', highlight: false },
     { label: 'ESCUCHANOS', id: 'escuchanos', highlight: true }
   ], []);

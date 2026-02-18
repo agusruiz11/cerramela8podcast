@@ -23,7 +23,7 @@ const MaestrasSection = () => {
           {/* Title "LAS MENTES MAESTRAS" - Top Left */}
           <div className="absolute top-2 sm:top-1 md:top-1 left-2 sm:left-4 md:left-12 z-20">
             <h2 className="font-thunder text-3xl sm:text-2xl md:text-4xl lg:text-5xl text-[#FAEED1] uppercase leading-[0.85] tracking-tight text-left font-semibold" style={{letterSpacing: '0.01em'}}>
-              LAS<br/>MENTES<br/>MAESTRAS
+              LA MESA 8
             </h2>
           </div>
 

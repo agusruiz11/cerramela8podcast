@@ -1,14 +1,18 @@
 /**
  * Vercel Serverless: PUT /api/newsletter/profile
  * Actualiza perfil del suscriptor (job, country) en Brevo (Kit comentado).
+ * CORS: permite peticiones desde www.cerramelaocho.com (Hostinger).
  */
 
 // import * as kitProvider from '../providers/kitProvider.js'; // Comentado: usar Brevo
 import * as brevoProvider from '../providers/brevoProvider.js';
+import { handleCorsPreflight, setCorsHeaders } from '../lib/cors.js';
 
 export default async function handler(req, res) {
+  setCorsHeaders(req, res);
   res.setHeader('Content-Type', 'application/json');
 
+  if (handleCorsPreflight(req, res)) return;
   if (req.method !== 'PUT') {
     res.status(405).json({ ok: false, error: 'Método no permitido' });
     return;
@@ -22,7 +26,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { subscriberId, email, job, country } = body;
+  const { subscriberId, email, job, businessType, country } = body;
 
   const provider = process.env.NEWSLETTER_PROVIDER || 'brevo';
 
@@ -38,7 +42,7 @@ export default async function handler(req, res) {
       return;
     }
     try {
-      await brevoProvider.updateProfile({ apiKey, email, job, country });
+      await brevoProvider.updateProfile({ apiKey, email, job, businessType, country });
       res.status(200).json({ ok: true });
     } catch (err) {
       res.status(400).json({ ok: false, error: err.message });

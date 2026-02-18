@@ -53,16 +53,18 @@ async function subscribeBrevo(opts) {
 
 /**
  * Actualiza atributos del contacto en Brevo por email.
- * @param {{ apiKey: string, email: string, job?: string, country?: string }} opts
+ * @param {{ apiKey: string, email: string, job?: string, businessType?: string, country?: string }} opts
  */
 async function updateProfileBrevo(opts) {
-  const { apiKey, email, job, country } = opts;
+  const { apiKey, email, job, businessType, country } = opts;
   const attrJob = process.env.BREVO_ATTR_JOB_TITLE || 'JOB_TITLE';
+  const attrBusinessType = process.env.BREVO_ATTR_BUSINESS_TYPE || 'BUSINESS_TYPE';
   const attrCountry = process.env.BREVO_ATTR_COUNTRY || 'COUNTRY';
   const MAX = 100;
 
   const attributes = {};
   if (job && String(job).trim()) attributes[attrJob] = String(job).trim().slice(0, MAX);
+  if (businessType && String(businessType).trim()) attributes[attrBusinessType] = String(businessType).trim().slice(0, MAX);
   if (country && String(country).trim()) attributes[attrCountry] = String(country).trim().slice(0, MAX);
 
   if (Object.keys(attributes).length === 0) {

@@ -46,7 +46,7 @@ export const api = {
   /**
    * Actualizar perfil del suscriptor (job, country).
    * Brevo usa email; Kit usa subscriberId (comentado).
-   * @param {{ subscriberId?: number, email?: string, job?: string, country?: string }} data
+   * @param {{ subscriberId?: number, email?: string, job?: string, businessType?: string, country?: string }} data
    */
   async submitProfile(data) {
     const provider = config.NEWSLETTER_PROVIDER || 'brevo';
@@ -60,6 +60,7 @@ export const api = {
         body: JSON.stringify({
           email: String(email).trim(),
           job: data.job ?? '',
+          businessType: data.businessType ?? '',
           country: data.country ?? ''
         })
       });
@@ -74,6 +75,7 @@ export const api = {
       body: JSON.stringify({
         subscriberId: Number(subscriberId),
         job: data.job ?? '',
+        businessType: data.businessType ?? '',
         country: data.country ?? ''
       })
     });

@@ -18,6 +18,16 @@ Configurarlas en **Vercel → Project → Settings → Environment Variables** (
 | `BREVO_LIST_ID` | ID de la lista de contactos en Brevo |
 | `BREVO_ATTR_JOB_TITLE` | (opcional) Atributo para ocupación. Por defecto: JOB_TITLE |
 | `BREVO_ATTR_COUNTRY` | (opcional) Atributo para país. Por defecto: COUNTRY |
+| `CORS_ALLOWED_ORIGINS` | (opcional) Orígenes extra permitidos para CORS, separados por coma (ej: `https://otro-dominio.com`) |
+
+### Despliegue Hostinger + Vercel
+
+Para tener el sitio en **Hostinger** (`www.cerramelaocho.com`) y la API en **Vercel**:
+
+1. **Vercel**: ya debe tener configuradas `BREVO_API_KEY` y `BREVO_LIST_ID`.
+2. **Build para Hostinger**: ejecutar `npm run build:hostinger` (genera `dist/` apuntando a la API en Vercel).
+3. **Subir** el contenido de `dist/` al hosting de Hostinger vía FTP o File Manager.
+4. **CORS** ya está configurado para permitir peticiones desde `www.cerramelaocho.com` y `cerramelaocho.com`.
 
 ### Cambiar de Brevo a Kit (comentado)
 

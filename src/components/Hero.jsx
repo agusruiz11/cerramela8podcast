@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import introVideo from '../assets/video/CL8_2026_INTRO.mp4';
+import introVideo from '../assets/video/CL8_2026_INTRO_compressed.mp4';
 
 const Hero = memo(() => {
   const videoRef = useRef(null);

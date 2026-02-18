@@ -13,12 +13,26 @@ const OCUPACIONES = [
   { value: 'otro', label: 'Otro' }
 ];
 
+const TIPOS_NEGOCIO = [
+  { value: 'restaurante_bodegon', label: 'Restaurante / Bodegón' },
+  { value: 'cerveceria_bar', label: 'Cervecería / Bar' },
+  { value: 'cafeteria_bakery', label: 'Cafetería / Bakery' },
+  { value: 'pizzeria', label: 'Pizzería' },
+  { value: 'sushi_asiatico', label: 'Sushi / Asiático' },
+  { value: 'hamburgueseria_fastfood', label: 'Hamburguesería / Fast Food' },
+  { value: 'hotel_alojamiento', label: 'Hotel / Alojamiento' },
+  { value: 'proveedor_industria', label: 'Proveedor / Industria' },
+  { value: 'estudiante_emprendedor', label: 'Estudiante / Emprendedor' },
+  { value: 'otro', label: 'Otro' }
+];
+
 import config from '@/config/config';
 
 const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId }) => {
   const [formData, setFormData] = useState({
     job: '',
     jobOtro: '',
+    businessType: '',
     country: ''
   });
   const isOtro = formData.job === 'otro';
@@ -40,8 +54,8 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
     try {
       await execute(
         isBrevo
-          ? { email: subscribedEmail, job: jobValue, country: formData.country }
-          : { subscriberId, job: jobValue, country: formData.country }
+          ? { email: subscribedEmail, job: jobValue, businessType: formData.businessType, country: formData.country }
+          : { subscriberId, job: jobValue, businessType: formData.businessType, country: formData.country }
       );
       toast({
         title: '¡Listo!',
@@ -133,6 +147,23 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
                       />
                     </div>
                   )}
+
+                  <div>
+                    <label className="block font-archivo font-semibold text-gray-700 mb-2">
+                      ¿Qué tipo de negocio tenés?
+                    </label>
+                    <select
+                      value={formData.businessType}
+                      onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+                      disabled={loading}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-archivo focus:outline-none focus:border-[#2A51F4] transition-all"
+                    >
+                      <option value="">Selecciona una opción</option>
+                      {TIPOS_NEGOCIO.map((op) => (
+                        <option key={op.value} value={op.value}>{op.label}</option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div>
                     <label className="block font-archivo font-semibold text-gray-700 mb-2">
