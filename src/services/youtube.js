@@ -2,7 +2,7 @@
 import config from '@/config/config';
 
 const CACHE_KEY = 'youtube_videos_cache';
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 horas: menos llamadas = menos cuota diaria
 
 const FALLBACK_VIDEOS = [
   {
@@ -69,28 +69,22 @@ class YouTubeService {
     }
 
     try {
-      // Excluir Shorts: videoDuration "short" = <4 min. Usamos medium (4-20 min) y long (>20 min)
-      const baseParams = {
+      // Una sola llamada (100 unidades de cuota) en lugar de 2 (200). Episodios largos >20 min.
+      const params = {
         key: config.YOUTUBE_API_KEY,
         channelId: config.YOUTUBE_CHANNEL_ID,
         part: 'snippet,id',
         order: 'date',
         type: 'video',
+        videoDuration: 'long',
         maxResults: '5'
       };
 
-      const [resMedium, resLong] = await Promise.all([
-        fetch(`https://www.googleapis.com/youtube/v3/search?${new URLSearchParams({ ...baseParams, videoDuration: 'medium' }).toString()}`),
-        fetch(`https://www.googleapis.com/youtube/v3/search?${new URLSearchParams({ ...baseParams, videoDuration: 'long' }).toString()}`)
-      ]);
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${new URLSearchParams(params).toString()}`);
+      const data = await res.json().catch(() => ({}));
 
-      const [dataMedium, dataLong] = await Promise.all([
-        resMedium.json().catch(() => ({})),
-        resLong.json().catch(() => ({}))
-      ]);
-
-      if (!resMedium.ok) {
-        const msg = dataMedium?.error?.message || 'YouTube API request failed';
+      if (!res.ok) {
+        const msg = data?.error?.message || 'YouTube API request failed';
         throw new Error(msg);
       }
 
@@ -106,18 +100,8 @@ class YouTubeService {
         };
       };
 
-      const allItems = [
-        ...(dataMedium.items || []).filter(i => i.id?.videoId),
-        ...(dataLong.items || []).filter(i => i.id?.videoId)
-      ];
-
-      const seen = new Set();
-      const videos = allItems
-        .filter(item => {
-          if (seen.has(item.id.videoId)) return false;
-          seen.add(item.id.videoId);
-          return true;
-        })
+      const items = (data.items || []).filter(i => i.id?.videoId);
+      const videos = items
         .map(toVideo)
         .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
         .slice(0, 3)
