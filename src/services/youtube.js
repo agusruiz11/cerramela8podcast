@@ -1,114 +1,61 @@
-
-import config from '@/config/config';
+/**
+ * Servicio de YouTube: obtiene los últimos episodios desde nuestra API (cache en servidor).
+ * Así solo se llama a la API de YouTube ~24 veces/día (1/hora) sin importar el tráfico.
+ */
 
 const CACHE_KEY = 'youtube_videos_cache';
-const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 horas: menos llamadas = menos cuota diaria
+const CACHE_DURATION = 10 * 60 * 1000; // 10 min en el cliente (la cache fuerte está en el servidor)
 
 const FALLBACK_VIDEOS = [
-  {
-    id: 'fallback1',
-    title: 'HOY UN BAR DEBE TENER GASTRONOMÍA',
-    thumbnail: 'https://images.unsplash.com/photo-1693904501551-4e7e716a780d?w=800&h=450&fit=crop',
-    url: 'https://youtube.com'
-  },
-  {
-    id: 'fallback2',
-    title: 'LOS PIZZA-CAFÉ SIGUEN FIRMES. PASEN Y VEA',
-    thumbnail: 'https://images.unsplash.com/photo-1668605335608-0b74662e45e2?w=800&h=450&fit=crop',
-    url: 'https://youtube.com'
-  },
-  {
-    id: 'fallback3',
-    title: 'ADRIAN VALENTI: MARCA EN NEGOCIOS DE FRANQUICIA',
-    thumbnail: 'https://images.unsplash.com/photo-1668608321309-8fa4f70deeed?w=800&h=450&fit=crop',
-    url: 'https://youtube.com'
-  }
+  { id: 'fallback1', title: 'HOY UN BAR DEBE TENER GASTRONOMÍA', thumbnail: 'https://images.unsplash.com/photo-1693904501551-4e7e716a780d?w=800&h=450&fit=crop', url: 'https://youtube.com' },
+  { id: 'fallback2', title: 'LOS PIZZA-CAFÉ SIGUEN FIRMES. PASEN Y VEA', thumbnail: 'https://images.unsplash.com/photo-1668605335608-0b74662e45e2?w=800&h=450&fit=crop', url: 'https://youtube.com' },
+  { id: 'fallback3', title: 'ADRIAN VALENTI: MARCA EN NEGOCIOS DE FRANQUICIA', thumbnail: 'https://images.unsplash.com/photo-1668608321309-8fa4f70deeed?w=800&h=450&fit=crop', url: 'https://youtube.com' }
 ];
 
-class YouTubeService {
-  getCache() {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
+const API_BASE = import.meta.env.VITE_API_BASE || '';
 
-      const { data, timestamp } = JSON.parse(cached);
-      const isExpired = Date.now() - timestamp > CACHE_DURATION;
-
-      if (isExpired) {
-        localStorage.removeItem(CACHE_KEY);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
+function getCache() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp > CACHE_DURATION) {
+      localStorage.removeItem(CACHE_KEY);
       return null;
     }
+    return data;
+  } catch {
+    return null;
   }
+}
 
-  setCache(data) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data,
-        timestamp: Date.now()
-      }));
-    } catch (error) {
-      console.error('Failed to cache videos:', error);
-    }
+function setCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch (e) {
+    console.error('Failed to cache videos:', e);
   }
+}
 
+class YouTubeService {
   async fetchLatestVideos() {
-    // Check cache first
-    const cached = this.getCache();
-    if (cached) {
-      return cached;
-    }
-
-    // If no API key configured, return fallback videos
-    if (!config.YOUTUBE_API_KEY || !config.YOUTUBE_CHANNEL_ID) {
-      return FALLBACK_VIDEOS;
-    }
+    const cached = getCache();
+    if (cached) return cached;
 
     try {
-      // Una sola llamada (100 unidades de cuota) en lugar de 2 (200). Episodios largos >20 min.
-      const params = {
-        key: config.YOUTUBE_API_KEY,
-        channelId: config.YOUTUBE_CHANNEL_ID,
-        part: 'snippet,id',
-        order: 'date',
-        type: 'video',
-        videoDuration: 'long',
-        maxResults: '5'
-      };
-
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${new URLSearchParams(params).toString()}`);
+      const res = await fetch(`${API_BASE}/api/youtube-videos`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' }
+      });
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg = data?.error?.message || 'YouTube API request failed';
-        throw new Error(msg);
+        throw new Error(data?.error || `Error ${res.status}`);
       }
 
-      const toVideo = (item) => {
-        const thumbnails = item.snippet?.thumbnails || {};
-        const thumbnail = thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || '';
-        return {
-          id: item.id.videoId,
-          title: item.snippet?.title || 'Video',
-          thumbnail,
-          publishedAt: item.snippet?.publishedAt || '',
-          url: `https://www.youtube.com/watch?v=${item.id.videoId}`
-        };
-      };
-
-      const items = (data.items || []).filter(i => i.id?.videoId);
-      const videos = items
-        .map(toVideo)
-        .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
-        .slice(0, 3)
-        .map(({ publishedAt, ...v }) => v);
-
+      const videos = Array.isArray(data?.videos) ? data.videos : [];
       if (videos.length > 0) {
-        this.setCache(videos);
+        setCache(videos);
         return videos;
       }
 
