@@ -37,17 +37,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    // playlistItems.list cuesta 1 unidad (search cuesta 100)
+    const playlistId = channelId.replace(/^UC/, 'UU');
     const params = new URLSearchParams({
       key: apiKey,
-      channelId,
-      part: 'snippet,id',
-      order: 'date',
-      type: 'video',
-      videoDuration: 'long',
+      playlistId,
+      part: 'snippet',
       maxResults: '5'
     });
 
-    const ytRes = await fetch(`https://www.googleapis.com/youtube/v3/search?${params.toString()}`);
+    const ytRes = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`);
     const data = await ytRes.json().catch(() => ({}));
 
     if (!ytRes.ok) {
@@ -60,16 +59,17 @@ export default async function handler(req, res) {
     const toVideo = (item) => {
       const thumbnails = item.snippet?.thumbnails || {};
       const thumbnail = thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || '';
+      const videoId = item.snippet?.resourceId?.videoId || '';
       return {
-        id: item.id.videoId,
+        id: videoId,
         title: item.snippet?.title || 'Video',
         thumbnail,
-        url: `https://www.youtube.com/watch?v=${item.id.videoId}`
+        url: `https://www.youtube.com/watch?v=${videoId}`
       };
     };
 
     const items = (data.items || [])
-      .filter((i) => i.id?.videoId)
+      .filter((i) => i.snippet?.resourceId?.videoId)
       .sort((a, b) => (b.snippet?.publishedAt || '').localeCompare(a.snippet?.publishedAt || ''));
     const videos = items.slice(0, 3).map(toVideo);
 
