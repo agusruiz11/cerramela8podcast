@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       key: apiKey,
       playlistId,
       part: 'snippet',
-      maxResults: '10'
+      maxResults: '25'
     });
 
     const ytRes = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`);
