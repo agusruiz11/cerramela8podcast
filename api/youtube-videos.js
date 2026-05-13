@@ -79,18 +79,28 @@ export default async function handler(req, res) {
 
     // Fetch durations to exclude Shorts (≤60s)
     const videoIds = allItems.map((i) => i.snippet.resourceId.videoId).join(',');
-    const detailsParams = new URLSearchParams({ key: apiKey, id: videoIds, part: 'contentDetails' });
+    const detailsParams = new URLSearchParams({ key: apiKey, id: videoIds, part: 'contentDetails,snippet' });
     const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?${detailsParams.toString()}`);
     const detailsData = await detailsRes.json().catch(() => ({}));
-    const durationMap = {};
+    const videoMeta = {};
     for (const v of (detailsData.items || [])) {
-      durationMap[v.id] = parseDuration(v.contentDetails?.duration);
+      const tags = (v.snippet?.tags || []).map(t => t.toLowerCase());
+      videoMeta[v.id] = {
+        duration: parseDuration(v.contentDetails?.duration),
+        description: (v.snippet?.description || '').toLowerCase(),
+        tags,
+      };
     }
 
     const isShort = (item) => {
-      const dur = durationMap[item.snippet.resourceId.videoId] || 0;
-      const text = `${item.snippet?.title || ''} ${item.snippet?.description || ''}`.toLowerCase();
-      return dur <= 60 || text.includes('#short');
+      const id = item.snippet.resourceId.videoId;
+      const meta = videoMeta[id] || {};
+      // YouTube Shorts can be up to 3 minutes (180s)
+      if (meta.duration <= 180) return true;
+      const titleAndDesc = `${item.snippet?.title || ''} ${meta.description}`.toLowerCase();
+      if (titleAndDesc.includes('#short')) return true;
+      if ((meta.tags || []).some(t => t === 'shorts' || t === 'short')) return true;
+      return false;
     };
 
     const items = allItems
