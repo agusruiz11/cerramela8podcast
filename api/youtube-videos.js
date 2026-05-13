@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       key: apiKey,
       playlistId,
       part: 'snippet',
-      maxResults: '5'
+      maxResults: '10'
     });
 
     const ytRes = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${params.toString()}`);
@@ -68,8 +68,33 @@ export default async function handler(req, res) {
       };
     };
 
-    const items = (data.items || [])
-      .filter((i) => i.snippet?.resourceId?.videoId)
+    // Parse ISO 8601 duration (e.g. PT1M30S) to seconds
+    const parseDuration = (iso) => {
+      const m = iso?.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!m) return 0;
+      return (parseInt(m[1] || 0) * 3600) + (parseInt(m[2] || 0) * 60) + parseInt(m[3] || 0);
+    };
+
+    const allItems = (data.items || []).filter((i) => i.snippet?.resourceId?.videoId);
+
+    // Fetch durations to exclude Shorts (≤60s)
+    const videoIds = allItems.map((i) => i.snippet.resourceId.videoId).join(',');
+    const detailsParams = new URLSearchParams({ key: apiKey, id: videoIds, part: 'contentDetails' });
+    const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?${detailsParams.toString()}`);
+    const detailsData = await detailsRes.json().catch(() => ({}));
+    const durationMap = {};
+    for (const v of (detailsData.items || [])) {
+      durationMap[v.id] = parseDuration(v.contentDetails?.duration);
+    }
+
+    const isShort = (item) => {
+      const dur = durationMap[item.snippet.resourceId.videoId] || 0;
+      const text = `${item.snippet?.title || ''} ${item.snippet?.description || ''}`.toLowerCase();
+      return dur <= 60 || text.includes('#short');
+    };
+
+    const items = allItems
+      .filter((i) => !isShort(i))
       .sort((a, b) => (b.snippet?.publishedAt || '').localeCompare(a.snippet?.publishedAt || ''));
     const videos = items.slice(0, 3).map(toVideo);
 
