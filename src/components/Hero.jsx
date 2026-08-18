@@ -6,7 +6,7 @@ import heroJpg from '../assets/images/hero-programas.jpg';
 
 const Hero = memo(() => {
   return (
-    <section className="relative min-h-0 h-[80vw] mt-28 md:mt-0 mb-0 md:min-h-screen md:h-screen flex items-center justify-center overflow-hidden bg-[#0B1020]">
+    <section className="relative min-h-0 h-[80vw] mt-0 mb-0 md:min-h-screen md:h-screen flex items-center justify-center overflow-hidden bg-[#0B1020]">
       {/* Mobile: 80vw + object-cover recorta los costados vacios y agranda el arte.
           Recorta 285px de cada lado; los logos arrancan en x=365, con 80px de margen. */}
       {/* Imagen de fondo: los tres programas */}
