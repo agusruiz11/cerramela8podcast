@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ffprobe -v error -show_entries format=duration,bit_rate,format_name -of default=nw=1 \"/media/elmapache/Western Digital HDD/Mis Archivos/Documentos/1. work/1. Posicionarte/CLIENTES/OLDS/cerrameLa8/cerrameLa8sitioWeb/WhatsApp Audio 2026-08-11 at 14.10.06.ogg\")",
+      "Bash(python3 -c \"import whisper; print\\('whisper OK'\\)\")",
+      "Bash(python3 -c \"import faster_whisper; print\\('faster_whisper OK'\\)\")",
+      "Bash(python3 -c \"import transformers,torch; print\\('transformers+torch OK'\\)\")",
+      "Bash(python3 -m pip --version)",
+      "Bash(mkdir -p /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad)",
+      "Bash(/tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/asr/bin/pip install *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(/tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/asr/bin/python -c 'import faster_whisper; print\\('\\\\''faster_whisper'\\\\'', faster_whisper.__version__\\)')",
+      "Bash(ffmpeg -nostdin -v error -y -i '/media/elmapache/Western Digital HDD/Mis Archivos/Documentos/1. work/1. Posicionarte/CLIENTES/OLDS/cerrameLa8/cerrameLa8sitioWeb/WhatsApp Audio 2026-08-11 at 14.10.06.ogg' -ac 1 -ar 16000 /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/audio.wav)",
+      "Bash(/tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/asr/bin/python /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/transcribe.py /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/audio.wav small)",
+      "Bash(/tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/asr/bin/python /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/transcribe.py /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/audio.wav medium)",
+      "Bash(ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration,codec_name -of default=nw=1 src/assets/video/CL8_2026_INTRO_compressed.mp4)",
+      "Bash(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of default=nw=1 src/assets/images/CL8_WEB2.jpg)",
+      "Bash(python3 /tmp/claude-1000/-media-elmapache-Western-Digital-HDD-Mis-Archivos-Documentos-1--work-1--Posicionarte-CLIENTES-OLDS-cerrameLa8-cerrameLa8sitioWeb/18fe7010-02ce-42a2-b79e-eefc2d480123/scratchpad/brevo_check.py)"
+    ]
+  }
+}

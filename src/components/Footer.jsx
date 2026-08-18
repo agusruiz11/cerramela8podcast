@@ -166,7 +166,7 @@ const Footer = () => {
               Todos los derechos reservados
             </p>
             <p className="font-archivo text-sm opacity-90 mt-1">
-              Sitio por <a href="https://www.instagram.com/posicionarte.online" target="_blank" rel="noopener noreferrer" className="text-[#2A51F4]/80 hover:text-[#3b60ff] transition-colors">Posicionarte Online</a>
+              Sitio por <a href="https://www.posicionarte.online" target="_blank" rel="noopener noreferrer" className="text-[#2A51F4]/80 hover:text-[#3b60ff] transition-colors">Posicionarte Online</a>
             </p>
           </motion.div>
         </div>
