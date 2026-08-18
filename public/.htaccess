@@ -11,7 +11,15 @@
   Header set Cache-Control "public, s-maxage=604800, max-age=0"
   
   # Cache in browser all assets
+  # Llevan hash en el nombre, asi que un build nuevo genera URLs nuevas.
   <If "%{REQUEST_URI} =~ m#^/assets/.*$#">
     Header set Cache-Control "public, max-age=604800"
+  </If>
+
+  # index.html es el unico archivo SIN hash: es el que dice que chunks cargar.
+  # Si el CDN lo cachea, un deploy nuevo no se ve hasta que expire (eran 7 dias)
+  # porque se sigue sirviendo el index viejo apuntando a los assets viejos.
+  <If "%{REQUEST_URI} =~ m#^/$|\.html$#">
+    Header set Cache-Control "public, max-age=0, s-maxage=0, must-revalidate"
   </If>
 </IfModule>
