@@ -14,6 +14,33 @@
 const BREVO_API_URL = 'https://api.brevo.com/v3/contacts';
 
 /**
+ * Programas del podcast -> atributos booleanos en Brevo.
+ * La clave es la que viaja desde el formulario; el valor es el Id del atributo.
+ * El cliente arma un segmento por cada uno para elegir a quien le manda cada newsletter.
+ */
+const PROGRAM_ATTRS = {
+  late_check_out: process.env.BREVO_ATTR_PROG_LATE_CHECK_OUT || 'PROG_LATE_CHECK_OUT',
+  cerrame_la_8: process.env.BREVO_ATTR_PROG_CERRAME_LA_8 || 'PROG_CERRAME_LA_8',
+  no_compres_humo: process.env.BREVO_ATTR_PROG_NO_COMPRES_HUMO || 'PROG_NO_COMPRES_HUMO'
+};
+
+const PROGRAM_KEYS = Object.keys(PROGRAM_ATTRS);
+
+/**
+ * Convierte la seleccion del formulario en los tres booleanos de Brevo.
+ * Siempre escribe los tres: si solo mandaramos los true, desmarcar un programa
+ * no lo sacaria del segmento.
+ * @param {string[]} programs - claves de PROGRAM_ATTRS
+ */
+function programAttributes(programs) {
+  const selected = new Set(Array.isArray(programs) ? programs : []);
+  return PROGRAM_KEYS.reduce((acc, key) => {
+    acc[PROGRAM_ATTRS[key]] = selected.has(key);
+    return acc;
+  }, {});
+}
+
+/**
  * Suscribe un email a la lista de Brevo.
  * @param {{ apiKey: string, listId: number, email: string }} opts
  * @returns {{ subscriberId?: string, alreadySubscribed?: boolean }}
@@ -22,11 +49,13 @@ async function subscribeBrevo(opts) {
   const { apiKey, listId, email } = opts;
   const trimmed = String(email).trim().toLowerCase();
 
+  // Arranca en los tres programas. El modal despues acota la seleccion.
+  // Asi nadie queda fuera de todos los segmentos por saltear el formulario.
   const payload = {
     email: trimmed,
     listIds: [listId],
     updateEnabled: true,
-    attributes: {}
+    attributes: programAttributes(PROGRAM_KEYS)
   };
 
   const response = await fetch(BREVO_API_URL, {
@@ -53,10 +82,10 @@ async function subscribeBrevo(opts) {
 
 /**
  * Actualiza atributos del contacto en Brevo por email.
- * @param {{ apiKey: string, email: string, job?: string, businessType?: string, country?: string }} opts
+ * @param {{ apiKey: string, email: string, job?: string, businessType?: string, country?: string, programs?: string[] }} opts
  */
 async function updateProfileBrevo(opts) {
-  const { apiKey, email, job, businessType, country } = opts;
+  const { apiKey, email, job, businessType, country, programs } = opts;
   const attrJob = process.env.BREVO_ATTR_JOB_TITLE || 'JOB_TITLE';
   const attrBusinessType = process.env.BREVO_ATTR_BUSINESS_TYPE || 'BUSINESS_TYPE';
   const attrCountry = process.env.BREVO_ATTR_COUNTRY || 'COUNTRY';
@@ -66,6 +95,12 @@ async function updateProfileBrevo(opts) {
   if (job && String(job).trim()) attributes[attrJob] = String(job).trim().slice(0, MAX);
   if (businessType && String(businessType).trim()) attributes[attrBusinessType] = String(businessType).trim().slice(0, MAX);
   if (country && String(country).trim()) attributes[attrCountry] = String(country).trim().slice(0, MAX);
+
+  // Solo si el formulario mando una seleccion. Un array vacio se ignora para
+  // no dejar al contacto fuera de los tres segmentos por error.
+  if (Array.isArray(programs) && programs.length > 0) {
+    Object.assign(attributes, programAttributes(programs));
+  }
 
   if (Object.keys(attributes).length === 0) {
     return { ok: true };
@@ -89,4 +124,4 @@ async function updateProfileBrevo(opts) {
   throw new Error(data?.message || 'Error al actualizar perfil en Brevo');
 }
 
-export { subscribeBrevo as subscribe, updateProfileBrevo as updateProfile };
+export { subscribeBrevo as subscribe, updateProfileBrevo as updateProfile, PROGRAM_KEYS };

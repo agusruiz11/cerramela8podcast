@@ -28,6 +28,11 @@ export default async function handler(req, res) {
 
   const { subscriberId, email, job, businessType, country } = body;
 
+  // Solo claves conocidas: lo que llega del cliente no se pasa crudo a Brevo.
+  const programs = Array.isArray(body.programs)
+    ? body.programs.filter((p) => brevoProvider.PROGRAM_KEYS.includes(p))
+    : [];
+
   const provider = process.env.NEWSLETTER_PROVIDER || 'brevo';
 
   // Brevo (activo) - usa email en lugar de subscriberId
@@ -42,7 +47,7 @@ export default async function handler(req, res) {
       return;
     }
     try {
-      await brevoProvider.updateProfile({ apiKey, email, job, businessType, country });
+      await brevoProvider.updateProfile({ apiKey, email, job, businessType, country, programs });
       res.status(200).json({ ok: true });
     } catch (err) {
       res.status(400).json({ ok: false, error: err.message });

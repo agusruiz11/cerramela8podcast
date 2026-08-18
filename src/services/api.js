@@ -44,12 +44,13 @@ export const api = {
   },
 
   /**
-   * Actualizar perfil del suscriptor (job, country).
+   * Actualizar perfil del suscriptor (job, country, programas).
    * Brevo usa email; Kit usa subscriberId (comentado).
-   * @param {{ subscriberId?: number, email?: string, job?: string, businessType?: string, country?: string }} data
+   * @param {{ subscriberId?: number, email?: string, job?: string, businessType?: string, country?: string, programs?: string[] }} data
    */
   async submitProfile(data) {
     const provider = config.NEWSLETTER_PROVIDER || 'brevo';
+    const programs = Array.isArray(data?.programs) ? data.programs : [];
     if (provider === 'brevo') {
       const email = data?.email;
       if (!email || String(email).trim() === '') {
@@ -61,7 +62,8 @@ export const api = {
           email: String(email).trim(),
           job: data.job ?? '',
           businessType: data.businessType ?? '',
-          country: data.country ?? ''
+          country: data.country ?? '',
+          programs
         })
       });
     }
@@ -76,7 +78,8 @@ export const api = {
         subscriberId: Number(subscriberId),
         job: data.job ?? '',
         businessType: data.businessType ?? '',
-        country: data.country ?? ''
+        country: data.country ?? '',
+        programs
       })
     });
   },

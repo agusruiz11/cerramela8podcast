@@ -26,6 +26,15 @@ const TIPOS_NEGOCIO = [
   { value: 'otro', label: 'Otro' }
 ];
 
+// Las claves tienen que coincidir con PROGRAM_ATTRS en api/providers/brevoProvider.js
+const PROGRAMAS = [
+  { value: 'cerrame_la_8', label: 'Cerrame la Ocho', desc: 'Gastronomía y competitividad' },
+  { value: 'late_check_out', label: 'Late Check Out', desc: 'Hotelería y competitividad' },
+  { value: 'no_compres_humo', label: 'No Compres Humo', desc: 'Líderes que enseñan' }
+];
+
+const TODOS_LOS_PROGRAMAS = PROGRAMAS.map((p) => p.value);
+
 import config from '@/config/config';
 
 const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId }) => {
@@ -33,9 +42,21 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
     job: '',
     jobOtro: '',
     businessType: '',
-    country: ''
+    country: '',
+    // Arranca con los tres marcados: el caso comun es querer todo.
+    programs: TODOS_LOS_PROGRAMAS
   });
   const isOtro = formData.job === 'otro';
+  const sinPrograma = formData.programs.length === 0;
+
+  const toggleProgram = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      programs: prev.programs.includes(value)
+        ? prev.programs.filter((p) => p !== value)
+        : [...prev.programs, value]
+    }));
+  };
   const { execute, loading } = useApi(api.submitProfile);
   const { toast } = useToast();
   // Brevo usa email; Kit usa subscriberId (comentado)
@@ -50,12 +71,26 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
       onClose();
       return;
     }
+    if (sinPrograma) {
+      toast({
+        title: 'Elegí al menos un programa',
+        description: 'Marcá cuál querés recibir en tu mail.',
+        variant: 'destructive'
+      });
+      return;
+    }
     const jobValue = isOtro ? (formData.jobOtro?.trim() || 'otro') : formData.job;
+    const comun = {
+      job: jobValue,
+      businessType: formData.businessType,
+      country: formData.country,
+      programs: formData.programs
+    };
     try {
       await execute(
         isBrevo
-          ? { email: subscribedEmail, job: jobValue, businessType: formData.businessType, country: formData.country }
-          : { subscriberId, job: jobValue, businessType: formData.businessType, country: formData.country }
+          ? { email: subscribedEmail, ...comun }
+          : { subscriberId, ...comun }
       );
       toast({
         title: '¡Listo!',
@@ -98,7 +133,7 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
           >
-            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -180,6 +215,51 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
                         <option key={p} value={p}>{p}</option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-archivo font-semibold text-gray-700 mb-1">
+                      ¿Qué programas querés recibir?
+                    </label>
+                    <p className="font-archivo text-sm text-gray-500 mb-2">
+                      Podés elegir más de uno.
+                    </p>
+                    <div className="space-y-2">
+                      {PROGRAMAS.map((p) => {
+                        const checked = formData.programs.includes(p.value);
+                        return (
+                          <label
+                            key={p.value}
+                            className={`flex items-start gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all ${
+                              checked
+                                ? 'border-[#2A51F4] bg-[#2A51F4]/5'
+                                : 'border-gray-200 hover:border-gray-300'
+                            } ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleProgram(p.value)}
+                              disabled={loading}
+                              className="mt-1 w-4 h-4 accent-[#2A51F4] shrink-0"
+                            />
+                            <span className="min-w-0">
+                              <span className="block font-archivo font-semibold text-gray-900">
+                                {p.label}
+                              </span>
+                              <span className="block font-archivo text-sm text-gray-500">
+                                {p.desc}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {sinPrograma && (
+                      <p className="font-archivo text-sm text-red-600 mt-2">
+                        Elegí al menos un programa.
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex gap-3 pt-4">
