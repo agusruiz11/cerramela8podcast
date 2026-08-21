@@ -49,13 +49,15 @@ async function subscribeBrevo(opts) {
   const { apiKey, listId, email } = opts;
   const trimmed = String(email).trim().toLowerCase();
 
-  // Arranca en los tres programas. El modal despues acota la seleccion.
-  // Asi nadie queda fuera de todos los segmentos por saltear el formulario.
+  // No se manda ningun atributo de programa en el alta: el contacto entra a la
+  // lista sin marcar nada y recien elige en el modal. Omitirlos (en vez de
+  // mandarlos en false) es deliberado -- con updateEnabled: true, un false
+  // borraria la seleccion de un suscriptor viejo que vuelva a dejar su mail,
+  // incluidos los que se importaron a mano a los tres programas.
   const payload = {
     email: trimmed,
     listIds: [listId],
-    updateEnabled: true,
-    attributes: programAttributes(PROGRAM_KEYS)
+    updateEnabled: true
   };
 
   const response = await fetch(BREVO_API_URL, {
@@ -97,7 +99,7 @@ async function updateProfileBrevo(opts) {
   if (country && String(country).trim()) attributes[attrCountry] = String(country).trim().slice(0, MAX);
 
   // Solo si el formulario mando una seleccion. Un array vacio se ignora para
-  // no dejar al contacto fuera de los tres segmentos por error.
+  // que un payload incompleto no borre la seleccion que el contacto ya tenia.
   if (Array.isArray(programs) && programs.length > 0) {
     Object.assign(attributes, programAttributes(programs));
   }

@@ -33,8 +33,6 @@ const PROGRAMAS = [
   { value: 'no_compres_humo', label: 'No Compres Humo', desc: 'Líderes que enseñan' }
 ];
 
-const TODOS_LOS_PROGRAMAS = PROGRAMAS.map((p) => p.value);
-
 import config from '@/config/config';
 
 const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId }) => {
@@ -43,8 +41,9 @@ const PostSubscriptionModal = ({ isOpen, onClose, subscribedEmail, subscriberId 
     jobOtro: '',
     businessType: '',
     country: '',
-    // Arranca con los tres marcados: el caso comun es querer todo.
-    programs: TODOS_LOS_PROGRAMAS
+    // Arranca vacio: la eleccion tiene que ser deliberada. El submit no deja
+    // seguir sin marcar al menos uno (ver `sinPrograma`).
+    programs: []
   });
   const isOtro = formData.job === 'otro';
   const sinPrograma = formData.programs.length === 0;
